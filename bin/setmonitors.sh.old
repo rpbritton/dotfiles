@@ -1,0 +1,119 @@
+#!/bin/sh
+
+position="--left-of"
+ideal_primary="DP-1"
+monitor_to_rotate="eDP-1"
+touchscreen_to_rotate="ELAN Touchscreen"
+
+while test $# -gt 0
+do
+	case "$1" in
+		--left) 
+			position="--left-of"
+			shift 2
+			;;
+		--right) position="--right-of"
+			shift 2
+			;;
+		--primary)
+			ideal_primary=$2
+			shift 2
+			;;
+	esac
+done
+
+for pid in $(pgrep "setmonitors.sh")
+do
+	if [[ $$ != $pid ]]
+	then
+		echo "Script is already running!"
+		exit 1
+	fi
+done
+
+function set_all_monitors {
+	primary_desktop=$(bspc query -D -d primary:focused --names)
+
+	if [[ $(xrandr | grep ^$ideal_primary | cut -d ' ' -f 2) == "connected" ]]
+	then
+		primary=$ideal_primary
+	else
+		primary=$(xrandr | grep " connected " | head -n 1 | cut -d ' ' -f 1)
+	fi
+	xrandr --output $primary --primary
+
+	pkill polybar
+
+	xrandr | grep "connected " | sort -t " " -k 3 -r | while read info
+	do
+		export MONITOR=$(echo $info | cut -d ' ' -f 1)
+
+		for i in {1..10}
+		do
+			bspc query -N -d $MONITOR:^$i | while read node_id
+			do
+				bspc node $node_id -d $primary:^$i
+			done
+		done
+
+		if [[ $(echo $info | cut -d ' '  -f 2) = "connected" ]]
+		then
+			if [[ $MONITOR = $primary ]]
+			then
+				xrandr --output $MONITOR --auto
+				bspc monitor $MONITOR -d 1 2 3 4 5 6 7 8 9 10
+				(sleep 4; polybar primary) &
+			else
+				xrandr --output $MONITOR $position $primary --auto
+				bspc monitor $MONITOR -d 1 2 3 4 5 6 7 8 9 10
+				bspc desktop -f $MONITOR:^1
+				(sleep 4; polybar external) &
+			fi
+		else
+			bspc monitor $MONITOR -r
+
+			xrandr --output $MONITOR --off --output $primary --primary --panning 0x0
+		fi
+	done
+
+	if [[ $primary_desktop == ?(-)+([0-9]) ]]
+	then
+		bspc desktop primary:^$primary_desktop -f
+	else
+		bspc monitor primary -f
+	fi
+
+	$HOME/bin/setwallpaper.sh
+
+	xinput --map-to-output  "$touchscreen_to_rotate" "$monitor_to_rotate"
+}
+
+set_all_monitors
+
+udevadm monitor --udev | while read line
+do
+	if [[ "$line" = *" change "* ]] && [[ "$line" = *" (drm)" ]]
+	then
+		set_all_monitors
+	fi
+done &
+
+monitor-sensor | while read line
+do
+	if [[ ${line,,} = *"accelerometer"* ]] && [[ ${line,,} = *"orientation"* ]]
+	then
+		orientation=$(echo $line | cut -d ":" -f 2 | cut -d " " -f 2 | cut -d ")" -f 1)
+
+		case $orientation in
+			"normal") rotation="normal" ;;
+			"bottom-up") rotation="inverted" ;;
+			#"left-up") rotation="left" ;;
+			#"right-up") rotation="right" ;;
+			*) continue ;;
+		esac
+
+		xrandr --output "$monitor_to_rotate" --rotate "$rotation"
+		xinput --map-to-output  "$touchscreen_to_rotate" "$monitor_to_rotate"
+	fi
+done &
+
