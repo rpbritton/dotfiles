@@ -54,7 +54,7 @@ scrot -o /tmp/lock.png
 
 convert /tmp/lock.png -scale 10% -scale 1000% \
 	\( "$img_path" -resize "$picture_bounds_w"x"$picture_bounds_h" -background none -gravity center -extent "$monitor_w"x"$monitor_h" -gravity none -geometry +"$monitor_x"+"$monitor_y" \) \
-	\( +clone -background $shadow_color -shadow 50x10+5+5 \) \
+	\( -clone 1 -background $shadow_color -shadow 50x10+5+5 \) \
 	\( -clone 2 -clone 1 -background none -layers merge +repage \) \
 	-delete 1,2 -composite \
 	/tmp/lock.png
