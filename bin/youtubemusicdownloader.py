@@ -19,17 +19,19 @@ def getargs():
     parser = argparse.ArgumentParser()
     parser.add_argument("url", metavar="url", nargs="+",
                         help="url of artist, album, or song from youtube music.")
-    parser.add_argument("-o", "--output", metavar="folder", default=".",
+    parser.add_argument("-f", "--folder", metavar="folder", default=".",
                         help="Output directory to save into.")
     parser.add_argument("-v", "--verbose", action="store_true",
                         help="Print more.")
+    parser.add_argument("-o", "--overwrite", action="store_true",
+                        help="Overwrite songs if they already exist.")
 
     args = parser.parse_args()
 
     for url in args.url:
         if not urlparse(url).netloc.endswith("youtube.com"):
             raise Exception("unknown url {}".format(url))
-    if not os.path.isdir(args.output):
+    if not os.path.isdir(args.folder):
         raise Exception("folder not found")
 
     return args
@@ -41,14 +43,47 @@ class DownloadError(Exception):
 
 class Downloader():
     def __init__(self, args):
-        self.folder = args.output.rstrip("/")
+        self.folder = args.folder.rstrip("/")
+        self.overwrite = args.overwrite
         self.ytm = ytmusicapi.YTMusic()
+
+        self.songInfo = {}
+        self.artistInfo = {}
+        self.albumInfo = {}
+
+    def _songInfo(self, id):
+        if id in self.songInfo:
+            return self.songInfo[id]
+
+        songInfo = self.ytm.get_song(id)
+        self.songInfo[id] = songInfo
+        return songInfo
+
+    def _artistInfo(self, id):
+        if id in self.artistInfo:
+            return self.artistInfo[id]
+
+        artistInfo = self.ytm.get_artist(id)
+        self.artistInfo[id] = artistInfo
+        return artistInfo
+
+    def _albumInfo(self, id):
+        if id in self.albumInfo:
+            return self.albumInfo[id]
+
+        try:
+            albumInfo = self.ytm.get_album(id)
+        except:
+            albumInfo = None
+
+        self.albumInfo[id] = albumInfo
+        return albumInfo
 
     def channel(self, id):
         songs = []
 
         try:
-            channelInfo = self.ytm.get_artist(id)
+            channelInfo = self._artistInfo(id)
         except KeyError as error:
             try:
                 self.album(id)
@@ -57,7 +92,7 @@ class Downloader():
                 raise error
         logging.debug("finished feching artist info")
 
-        if "songs" in channelInfo:
+        if "songs" in channelInfo and channelInfo["songs"]:
             songsList = channelInfo["songs"]["results"]
             if "browseId" in channelInfo["songs"] and channelInfo["songs"]["browseId"]:
                 songsInfo = self.ytm.get_playlist(
@@ -67,26 +102,30 @@ class Downloader():
                 songs.append(song["videoId"])
         logging.debug("finished feching artist songs")
 
-        if "albums" in channelInfo:
+        if "albums" in channelInfo and channelInfo["albums"]:
             albumsList = channelInfo["albums"]["results"]
             if "browseId" in channelInfo["albums"] and channelInfo["albums"]["browseId"]:
                 albumsInfo = self.ytm.get_artist_albums(channelInfo["albums"]["browseId"],
                                                         channelInfo["albums"]["params"])
                 albumsList = albumsInfo
             for album in albumsList:
-                albumInfo = self.ytm.get_album(album["browseId"])
+                albumInfo = self._albumInfo(album["browseId"])
+                if not albumInfo:
+                    break
                 for song in albumInfo["tracks"]:
                     songs.append(song["videoId"])
         logging.debug("finished feching artist albums")
 
-        if "singles" in channelInfo:
+        if "singles" in channelInfo and channelInfo["singles"]:
             singlesList = channelInfo["singles"]["results"]
             if "browseId" in channelInfo["singles"] and channelInfo["singles"]["browseId"]:
                 singlesInfo = self.ytm.get_artist_albums(channelInfo["singles"]["browseId"],
                                                          channelInfo["singles"]["params"])
                 singlesList = singlesInfo
             for single in singlesList:
-                singleInfo = self.ytm.get_album(single["browseId"])
+                singleInfo = self._albumInfo(single["browseId"])
+                if not singleInfo:
+                    break
                 for song in singleInfo["tracks"]:
                     songs.append(song["videoId"])
         logging.debug("finished feching artist singles")
@@ -97,7 +136,7 @@ class Downloader():
     def album(self, id):
         songs = []
 
-        albumInfo = self.ytm.get_album(id)
+        albumInfo = self._albumInfo(id)
         for song in albumInfo["tracks"]:
             songs.append(song["videoId"])
 
@@ -129,7 +168,7 @@ class Downloader():
         logging.debug("downloading song list: {}".format(songs))
 
         for index in range(len(songs)):
-            logging.info("downlong song {} of {}".format(
+            logging.info("downloading song {} of {}".format(
                 index + 1, len(songs)))
             try:
                 self.song(songs[index], True)
@@ -139,8 +178,10 @@ class Downloader():
     def song(self, id, preferSong=False):
         logging.info("downlowding song: {}".format(id))
 
-        basicInfo = self.ytm.get_song(id)
-        if "videoId" not in basicInfo:
+        basicInfo = self._songInfo(id)
+        if "videoId" in basicInfo:
+            id = basicInfo["videoId"]
+        else:
             raise DownloadError("video not found {}".format(id))
         logging.debug("basicInfo: {}".format(basicInfo))
 
@@ -150,27 +191,33 @@ class Downloader():
         logging.debug("searchQuery: {}".format(searchQuery))
 
         searchInfo = None
-        searchResults = self.ytm.search(searchQuery, filter="songs", limit=1)
+        searchResults = self.ytm.search(searchQuery, filter="songs", limit=20)
         if len(searchResults) == 0:
             if preferSong:
                 raise DownloadError("song not found {}".format(searchQuery))
         else:
-            searchInfo = searchResults[0]
+            for result in searchResults:
+                if result["videoId"] == id:
+                    searchInfo = result
+                    break
+            else:
+                searchInfo = searchResults[0]
         logging.debug("searchInfo: {}".format(searchInfo))
 
         songInfo = basicInfo
         if searchInfo and searchInfo["videoId"] != songInfo["videoId"]:
-            songInfo = self.ytm.get_song(searchInfo["videoId"])
+            songInfo = self._songInfo(searchInfo["videoId"])
         logging.debug("songInfo: {}".format(songInfo))
 
         albumInfo = None
         albumSongInfo = None
-        if searchInfo and "album" in searchInfo:
-            albumInfo = self.ytm.get_album(searchInfo["album"]["id"])
-            for albumSong in albumInfo["tracks"]:
-                if albumSong["title"] == searchInfo["title"]:
-                    albumSongInfo = albumSong
-                    break
+        if searchInfo and "album" in searchInfo and searchInfo["album"]:
+            albumInfo = self._albumInfo(searchInfo["album"]["id"])
+            if albumInfo and "tracks" in albumInfo and albumInfo["tracks"]:
+                for albumSong in albumInfo["tracks"]:
+                    if albumSong["title"] == searchInfo["title"]:
+                        albumSongInfo = albumSong
+                        break
         logging.debug("albumInfo: {}".format(albumInfo))
         logging.debug("albumSongInfo: {}".format(albumSongInfo))
 
@@ -189,15 +236,27 @@ class Downloader():
         logging.debug("title: {}".format(title))
 
         artists = []
-        if songInfo and "artists" in songInfo:
-            artists = songInfo["artists"]
+        artistIds = []
+        if searchInfo and "artists" in searchInfo and searchInfo["artists"]:
+            for artist in searchInfo["artists"]:
+                if artist["id"] not in artistIds:
+                    try:
+                        artistInfo = self._artistInfo(artist["id"])
+                    except:
+                        name = artist["name"]
+                    else:
+                        name = artistInfo["name"]
+                    if name not in artists:
+                        artists.append(name)
+                        artistIds.append(artist["id"])
+            if "artists" in songInfo and songInfo["artists"]:
+                for artist in songInfo["artists"]:
+                    if artist not in artists:
+                        artists.append(artist)
+        elif "artists" in basicInfo and basicInfo["artists"] and len(basicInfo["artists"]) > 0:
+            artists = basicInfo["artists"]
         elif "author" in basicInfo:
             artists = [basicInfo["author"]]
-        artistsCopy = artists
-        artists = []
-        for artist in artistsCopy:
-            if artist not in artists:
-                artists.append(artist)
         logging.debug("artists: {}".format(artists))
 
         albumArtist = None
@@ -206,13 +265,10 @@ class Downloader():
         logging.debug("albumArtist: {}".format(albumArtist))
 
         artistUrl = None
-        if searchInfo and "artists" in searchInfo:
-            for artist in searchInfo["artists"]:
-                if albumArtist == artist["name"]:
-                    artistUrl = "https://music.youtube.com/channel/{}".format(
-                        artist["id"])
-                    break
-        if not artistUrl and "channelId" in basicInfo:
+        if len(artistIds) > 0:
+            artistUrl = "https://music.youtube.com/channel/{}".format(
+                artistIds[0])
+        elif "channelId" in basicInfo:
             artistUrl = "https://music.youtube.com/channel/{}".format(
                 basicInfo["channelId"])
         logging.debug("artistUrl: {}".format(artistUrl))
@@ -220,19 +276,19 @@ class Downloader():
         album = None
         if albumInfo and "title" in albumInfo:
             album = albumInfo["title"]
-        elif songInfo and "album" in searchInfo:
-            album = songInfo["album"]["name"]
+        elif searchInfo and "album" in searchInfo and searchInfo["album"]:
+            album = searchInfo["album"]["name"]
         logging.debug("album: {}".format(album))
 
         albumArt = None
-        if albumInfo and "thumbnails" in albumInfo:
+        if albumInfo and "thumbnails" in albumInfo and albumInfo["thumbnails"] and len(albumInfo["thumbnails"]) > 0:
             albumInfo["thumbnails"].sort(
                 key=lambda art: art["width"], reverse=True)
             albumArt = albumInfo["thumbnails"][0]["url"]
-        elif "thumbnail" in basicInfo:
-            albumInfo["thumbnail"]["thumbnails"].sort(
+        elif "thumbnail" in basicInfo and basicInfo["thumbnail"] and "thumbnails" in basicInfo["thumbnail"] and basicInfo["thumbnail"]["thumbnails"] and len(basicInfo["thumbnail"]["thumbnails"]) > 0:
+            basicInfo["thumbnail"]["thumbnails"].sort(
                 key=lambda art: art["width"], reverse=True)
-            albumArt = albumInfo["thumbnail"]["thumbnails"][0]["url"]
+            albumArt = basicInfo["thumbnail"]["thumbnails"][0]["url"]
         logging.debug("albumArt: {}".format(albumArt))
 
         trackNum = None
@@ -245,7 +301,7 @@ class Downloader():
         logging.debug("trackNum: {}".format(trackNum))
 
         releaseDate = None
-        if albumInfo and "releaseDate" in albumInfo:
+        if albumInfo and "releaseDate" in albumInfo and albumInfo["releaseDate"]:
             releaseDate = "{}".format(albumInfo["releaseDate"]["year"])
         elif songInfo and "release" in songInfo:
             try:
@@ -263,14 +319,32 @@ class Downloader():
                 pass
         logging.debug("releaseDate: {}".format(releaseDate))
 
-        fileName = "{}.mp3".format(title)
+        tmpFileName = "{}.mp3".format(id)
+        logging.debug("tmpFileName: {}".format(tmpFileName))
+
+        tmpFilePath = "{}/{}".format(self.folder, tmpFileName)
+        logging.debug("tmpFilePath: {}".format(tmpFilePath))
+
+        fileName = "{}.mp3".format(title.replace("/", ","))
         if albumArtist:
-            fileName = "{} - {}".format(albumArtist, fileName)
-        filePath = "{}/{}".format(self.folder, fileName)
+            fileName = "{} - {}".format(albumArtist.replace("/",
+                                                            ","), fileName)
+        fileName.strip()
         logging.debug("fileName: {}".format(fileName))
+
+        filePath = "{}/{}".format(self.folder, fileName)
         logging.debug("filePath: {}".format(filePath))
 
         logging.debug("finished gathering metadata")
+
+        if os.path.exists(filePath):
+            if self.overwrite:
+                logging.info("found existing song '{}' by '{}', overwriting".format(
+                    title, albumArtist))
+            else:
+                logging.info("found existing song '{}' by '{}', skipping".format(
+                    title, albumArtist))
+                return
 
         try:
             with youtube_dl.YoutubeDL({
@@ -278,9 +352,9 @@ class Downloader():
                 "postprocessors": [{
                     "key": "FFmpegExtractAudio",
                     "preferredcodec": "mp3",
-                    "preferredquality": "256",
+                    "preferredquality": "320",
                 }],
-                "outtmpl": filePath.replace(".mp3", ".%(ext)s"),
+                "outtmpl": tmpFilePath.replace(".mp3", ".%(ext)s"),
                 "logger": logging
             }) as ydl:
                 ydl.download([songUrl])
@@ -288,7 +362,7 @@ class Downloader():
             raise DownloadError("failed to download")
         logging.debug("finished downloading")
 
-        tag = eyed3.id3.Tag()
+        tag = eyed3.id3.Tag(version=eyed3.id3.ID3_V2_3)
         if title:
             tag.title = title
         if artists:
@@ -313,7 +387,7 @@ class Downloader():
             logging.debug("downloading album art")
             art = Image.open(urlopen(albumArt))
             width, height = art.size
-            if width > 544 or height > 544:
+            if width > 544 and height > 544:
                 if width > height:
                     width = round(544.0 / height * width)
                     height = 544
@@ -321,23 +395,16 @@ class Downloader():
                     height = round(544.0 / width * height)
                     width = 544
             art = art.resize((width, height))
-            x, y = 0, 0
-            if width != height:
-                if width > height:
-                    x = width / 2 - height / 2
-                    width = height
-                elif width < height:
-                    y = height / 2 - width
-                    height = width
-            art = art.crop((x, y, width, height))
             rawArt = io.BytesIO()
             art.save(rawArt, format="jpeg")
             tag.images.set(eyed3.id3.frames.ImageFrame.FRONT_COVER,
                            rawArt.getvalue(), "image/jpeg")
             logging.debug("added album art")
 
-        tag.save(filename=filePath, version=eyed3.id3.ID3_V2_3)
+        tag.save(filename=tmpFilePath, version=eyed3.id3.ID3_V2_3)
         logging.debug("finished tagging")
+
+        os.rename(tmpFilePath, filePath)
 
         logging.info("finished downloading song '{}' by '{}'".format(
             title, albumArtist))
