@@ -33,7 +33,7 @@ if [ "$?" != 0 ]; then
 	exit 1
 fi
 
-. secrets/drivesecrets
+. $HOME/bin/secrets/drivesecrets
 
 accounts=( "school" "personal" )
 

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-directory="$HOME/tmp/screenshots"
+directory="/tmp/screenshots"
 name='screenshot_%F_%T_$wx$h.png'
 
 mkdir -p "$directory"
