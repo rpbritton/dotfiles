@@ -13,6 +13,9 @@ import datetime
 from PIL import Image
 from urllib.request import urlopen
 import io
+import re
+import unicodedata
+import sys
 
 
 def getargs():
@@ -45,7 +48,8 @@ class Downloader():
     def __init__(self, args):
         self.folder = args.folder.rstrip("/")
         self.overwrite = args.overwrite
-        self.ytm = ytmusicapi.YTMusic()
+        self.ytm = ytmusicapi.YTMusic(
+            os.path.join(sys.path[0], "secrets/ytmusic_headers_auth.json"))
 
         self.songInfo = {}
         self.artistInfo = {}
@@ -93,7 +97,9 @@ class Downloader():
         logging.debug("finished feching artist info")
 
         if "songs" in channelInfo and channelInfo["songs"]:
-            songsList = channelInfo["songs"]["results"]
+            songsList = []
+            if "results" in channelInfo["songs"] and channelInfo["songs"]["results"]:
+                songsList = channelInfo["songs"]["results"]
             if "browseId" in channelInfo["songs"] and channelInfo["songs"]["browseId"]:
                 songsInfo = self.ytm.get_playlist(
                     channelInfo["songs"]["browseId"], 10000)
@@ -103,7 +109,9 @@ class Downloader():
         logging.debug("finished feching artist songs")
 
         if "albums" in channelInfo and channelInfo["albums"]:
-            albumsList = channelInfo["albums"]["results"]
+            albumsList = []
+            if "results" in channelInfo["albums"] and channelInfo["albums"]["results"]:
+                albumsList = channelInfo["albums"]["results"]
             if "browseId" in channelInfo["albums"] and channelInfo["albums"]["browseId"]:
                 albumsInfo = self.ytm.get_artist_albums(channelInfo["albums"]["browseId"],
                                                         channelInfo["albums"]["params"])
@@ -117,7 +125,9 @@ class Downloader():
         logging.debug("finished feching artist albums")
 
         if "singles" in channelInfo and channelInfo["singles"]:
-            singlesList = channelInfo["singles"]["results"]
+            singlesList = []
+            if "results" in channelInfo["singles"] and channelInfo["singles"]["results"]:
+                singlesList = channelInfo["singles"]["results"]
             if "browseId" in channelInfo["singles"] and channelInfo["singles"]["browseId"]:
                 singlesInfo = self.ytm.get_artist_albums(channelInfo["singles"]["browseId"],
                                                          channelInfo["singles"]["params"])
@@ -325,11 +335,14 @@ class Downloader():
         tmpFilePath = "{}/{}".format(self.folder, tmpFileName)
         logging.debug("tmpFilePath: {}".format(tmpFilePath))
 
-        fileName = "{}.mp3".format(title.replace("/", ","))
+        fileName = title
         if albumArtist:
-            fileName = "{} - {}".format(albumArtist.replace("/",
-                                                            ","), fileName)
-        fileName.strip()
+            fileName = "{} - {}".format(albumArtist, title)
+        fileName = unicodedata.normalize("NFKD", fileName).encode(
+            "ascii", "ignore").decode("ascii")
+        fileName = re.sub("[^\w\s\(\)\-]", " ", fileName)
+        fileName = re.sub("\s\s+", " ", fileName).strip()
+        fileName = "{}.mp3".format(fileName)
         logging.debug("fileName: {}".format(fileName))
 
         filePath = "{}/{}".format(self.folder, fileName)
