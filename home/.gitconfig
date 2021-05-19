@@ -1,0 +1,13 @@
+[user]
+	email = git@rbritton.dev
+	name = rpbritton
+[pull]
+	rebase = true
+[init]
+	defaultBranch = main
+[color]
+	ui = auto
+[url "ssh://git@github.com/"]
+	insteadOf = https://github.com/
+[url "ssh://git@bitbucket.org/"]
+	insteadOf = https://bitbucket.org/

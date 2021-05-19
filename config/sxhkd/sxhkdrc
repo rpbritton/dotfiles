@@ -1,0 +1,124 @@
+# screenshot
+super + @m
+	$HOME/bin/screenshot.sh
+super + shift + @m
+	$HOME/bin/screenshot.sh -sf
+
+# audio controls
+XF86AudioMute
+	$HOME/bin/volume.sh -t
+any + XF86Audio{Lower,Raise}Volume
+	$HOME/bin/volume.sh {-d,-i} 5
+XF86AudioMedia
+	$HOME/bin/audiopicker.py
+
+# music player controls
+XF86AudioPlay
+	playerctl play-pause
+XF86Audio{Prev,Next}
+	playerctl {previous,next}
+
+# brightness
+XF86MonBrightness{Up,Down}
+	$HOME/bin/backlight.sh {+,-}
+XF86KbdBrightness{Up,Down}
+	$HOME/bin/backlight.sh {+,-}
+
+# suspend and turn of the monitor
+# edit "/etc/systemd/logind.conf"
+#{XF86Sleep,XF86PowerOff}
+	#sleep 0.7; xset dpms force off
+#super + {XF86Sleep,XF86PowerOff}
+	#$HOME/bin/lock.sh
+#super + ctrl + {XF86Sleep,XF86PowerOff}
+	#systemctl suspend
+#super + ctrl + shift + {XF86Sleep,XF86PowerOff}
+	#systemctl poweroff
+
+#super + shift + Escape
+	#sleep 0.7; xset dpms force off
+super + Escape
+	$HOME/bin/lock.sh -f
+super + shift + Escape
+	systemctl suspend
+
+# terminal emulator
+super + Return
+	kitty -1
+
+# program launcher
+super + space
+	rofi -show drun
+# vpn selector
+super + h
+	$HOME/bin/changevpngui.sh
+# bluetooth selector
+super + k
+	$HOME/bin/bluetooth.sh -c
+
+# make sxhkd reload its configuration files:
+super + alt + Escape
+	pkill -USR1 -x sxhkd
+# quit bspwm normally
+super + ctrl + alt + Escape
+	bspc quit
+
+# close and kill
+super + {_,shift + }a
+	eval $(xdotool getmouselocation --shell); \
+	xdotool mousemove 10000 10000; \
+	bspc node -{c,k}; \
+	xdotool mousemove --screen $SCREEN $X $Y
+
+# set the window state
+super + {y,semicolon,o}
+	bspc node -t {tiled,floating,fullscreen}
+
+# focus the node in the given direction
+super + {n,e,u,i}
+	dir={west,south,north,east}; \
+	if ! bspc node -f $dir.normal; then \
+		bspc monitor -f $dir; \
+	fi
+super + shift + {n,e,u,i}
+	cur_node=$(bspc query -N -n); \
+	cur_monitor=$(bspc query -M -m); \
+	dir={west,south,north,east}; \
+	if ! bspc node -f $dir.normal; then \
+		bspc node -m $dir; \
+	else \
+		new_monitor=$(bspc query -M -m); \
+		if [[ $new_monitor -eq $cur_monitor ]]; then \
+			bspc node -s $cur_node; \
+			bspc node $cur_node -f; \
+		else \
+			bspc node $cur_node -f; \
+			bspc node -m $dir --follow; \
+		fi; \
+	fi
+
+# focus or send to the given desktop
+super + {_,shift + }{w,f,p,r,s,t,x,c,d,q}
+	args={(desktop -f),(node -d)}; \
+	desktop={1-9,10}; \
+	if [[ $(bspc query -D -d focused --names) != $desktop ]]; then \
+	eval $(xdotool getmouselocation --shell); \
+	xdotool mousemove 10000 10000; \
+	bspc ${args} focused:^$desktop; \
+	xdotool mousemove --screen $SCREEN $X $Y; \
+	fi
+
+# expand windows
+super + alt + {n,e,u,i}
+	bspc node -z {left -20 0,bottom 0 20,top 0 -20,right 20 0}
+super + alt + shift + {n,e,u,i}
+	bspc node -z {right -20 0,top 0 20,bottom 0 -20,left 20 0}
+
+# move a floating window
+super + {Left,Down,Up,Right}
+	bspc node -v {-20 0,0 20,0 -20,20 0}
+
+# mouse keys
+#mod3 + {w,s,l,d}
+#	$HOME/bin/scrollactivewindow.sh {up,down,back,forward}
+

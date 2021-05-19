@@ -1,0 +1,193 @@
+[colors]
+background = ${file:/home/ryan/.cache/wal/polybar}
+foreground = ${xrdb:color7}
+accent = ${xrdb:color2}
+
+[bar/standard]
+width = 100%
+height = 20
+fixed-center = true
+
+bottom = true
+
+module-margin-left = 1
+module-margin-right = 0
+
+background = ${colors.background}
+foreground = ${colors.foreground}
+
+#font-0 = "Ubuntu Mono:size=8;2"
+#font-0 = "Fira Code:size=8;2"
+#font-0 = "Fantasque Sans Mono:size=9;2"
+#font-0 = "Source Code Pro:size=8;2"
+font-0 = "Cascadia Code:size=8;2"
+#font-0 = "Roboplex Nerd Font:size=9;2"
+
+dpi = ${xrdb:Xft.dpi:-1}
+
+cursor-click = pointer
+
+padding-left = 1
+padding-right = 1
+
+;override-redirect = true
+wm-restack = bspwm
+
+;border-top-color = ${colors.accent}
+;border-top-size = 1
+
+[bar/primary]
+inherit = bar/standard
+
+monitor = ${env:MONITOR}
+
+modules-left = rofi cpu frequency temperature memory battery volume backlight bluetooth
+modules-center = bspwm
+modules-right = player network date
+
+tray-position = right
+tray-padding = 1
+
+[bar/auxiliary]
+inherit = bar/standard
+
+monitor = ${env:MONITOR}
+
+modules-center = bspwm
+modules-right = date
+
+[module/date]
+type = internal/date
+interval = 5
+
+date = " %A, %B %d"
+
+time = "%H:%M "
+
+label = %date% @ %time%
+format-background = ${colors.accent}
+label-foreground = ${colors.background}
+
+[module/network]
+type = custom/script
+
+exec = timeout 1 $HOME/bin/networkstatus.sh
+interval = 1
+
+label = " %output% "
+
+[module/memory]
+type = internal/memory
+interval = 2
+
+label = " ram: %percentage_used%% "
+
+[module/bspwm]
+type = internal/bspwm
+
+label-focused = x
+label-focused-foreground = ${colors.accent}
+label-focused-padding = 2
+
+label-occupied = -
+label-occupied-padding = 2
+
+;label-urgent = !
+label-urgent-background = ${colors.accent}
+label-urgent-padding = 2
+
+label-empty = ·
+label-empty-foreground = ${colors.foreground}
+label-empty-padding = 2
+
+[module/bluetooth]
+type = custom/script
+
+exec = $HOME/bin/bluetooth.sh --tail short
+tail = true
+
+label = " bt: %output% "
+
+click-left = $HOME/bin/bluetooth.sh --toggle-connect &
+click-right = $HOME/bin/bluetooth.sh -c &
+
+[module/backlight]
+type = custom/script
+
+exec = $HOME/bin/backlight.sh --tail
+tail = true
+
+label = " lit: %output% "
+
+scroll-up = $HOME/bin/backlight.sh +
+scroll-down = $HOME/bin/backlight.sh -
+
+[module/cpu]
+type = internal/cpu
+interval = 2
+
+label = " cpu: %percentage:2%% "
+
+[module/frequency]
+type = custom/script
+interval = 2
+exec = timeout 1 lscpu | grep "CPU MHz" | awk '{printf "%0.1f", $3/1000}'
+
+label = " freq: %output:3%GHz "
+
+[module/temperature]
+type = custom/script
+interval = 2
+exec = timeout 1 sensors | grep "Package id 0:" | awk '{printf "%d", $4}'
+
+label = " temp: %output%C "
+
+[module/battery]
+type = internal/battery
+
+full-at = 99
+
+battery = BAT0
+adapter = AC
+
+label-discharging = " batt: %percentage%% "
+label-charging = " batt: +%percentage%% "
+label-full = " batt: +%percentage%% "
+
+[module/volume]
+/*type = internal/pulseaudio*/
+
+/*label-volume = " vol: %percentage%% "*/
+/*label-muted = " vol: muted "*/
+type = custom/script
+
+exec = $HOME/bin/volume.sh --tail
+tail = true
+
+label = " vol: %output% "
+
+click-left = $HOME/bin/volume.sh -t &
+click-right = $HOME/bin/audiopicker.py &
+scroll-up = $HOME/bin/volume.sh -i 5 &
+scroll-down = $HOME/bin/volume.sh -d 5 &
+
+[module/player]
+type = custom/script
+
+exec = timeout 1 $HOME/bin/playerstatus.sh
+interval = 2
+
+label = " %output% "
+
+click-left = playerctl play-pause &
+scroll-up = playerctl previous &
+scroll-down = playerctl next &
+
+[module/rofi]
+type = custom/text
+
+content = " rofi "
+content-background = ${colors.accent}
+content-foreground = ${colors.background}
+
+click-left = rofi -show drun &

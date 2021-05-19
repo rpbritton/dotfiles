@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+
+# scripts
+export PATH=$PATH:$HOME/.local/bin
+export PATH=$PATH:$HOME/bin
+
+# go
+export GOPATH=$HOME/go
+export PATH="$GOPATH/bin:$PATH"
+
+# matlab
+export PATH=$PATH:~/MATLAB/R2020a/bin/matlab
