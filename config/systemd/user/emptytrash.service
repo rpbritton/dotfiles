@@ -1,0 +1,6 @@
+[Unit]
+Description=Empty the trash
+
+[Service]
+Type=oneshot
+ExecStart=trash-empty 30

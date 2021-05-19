@@ -1,0 +1,10 @@
+[Unit]
+Description=Backup to google drive
+
+[Service]
+Type=simple
+ExecStart=%h/bin/drivebackup.sh -a
+
+[Install]
+WantedBy=basic.target
+
