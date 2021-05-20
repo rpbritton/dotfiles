@@ -14,5 +14,5 @@
 [[ -f $HOME/.cache/wal/sequences ]] && cat $HOME/.cache/wal/sequences
 
 # bash prompt
-export PS1="\[\033[01;32m\]\u@\h \[\033[01;34m\]\W \\$ \[\033[00m\]"
+export PS1="\[$(tput bold)\]\[$(tput setaf 2)\]\w\[$(tput bold)\]\[$(tput setaf 4)\] \\$\[$(tput sgr0)\] \[$(tput sgr0)\]"
 

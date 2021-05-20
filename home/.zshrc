@@ -15,9 +15,6 @@ antigen bundle zsh-users/zsh-history-substring-search
 antigen bundle zsh-users/zsh-autosuggestions
 antigen bundle zsh-users/zsh-syntax-highlighting
 
-# theme
-antigen theme robbyrussell
-
 # apply
 antigen apply
 
@@ -25,3 +22,7 @@ antigen apply
 export ZSH_AUTOSUGGEST_STRATEGY=(completion history)
 autoload compinit && compinit
 export ZSH_AUTOSUGGEST_USE_ASYNC=true
+
+# prompt
+export PROMPT="%B%F{green}%~%f%b %B%F{blue}%(!.#.$)%f%b "
+
