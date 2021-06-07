@@ -78,33 +78,31 @@ then
 	light -S 10
 fi
 
-$HOME/bin/setinputs.sh
-
 i3lock -n -i /tmp/lock.png \
 	--indicator \
-	--insidevercolor=${color0:1}00 \
-	--insidewrongcolor=${color0:1}00 \
-	--insidecolor=${color0:1}00 \
-	--ringvercolor=${color1:1}dd \
-	--ringwrongcolor=${color1:1}dd \
-	--ringcolor=${color7:1}dd \
-	--linecolor=${color0:1}00 \
-	--keyhlcolor=${color0:1}dd \
-	--bshlcolor=${color0:1}dd \
-	--indpos="x+40:y+h-40" \
+	--insidever-color=${color0:1}00 \
+	--insidewrong-color=${color0:1}00 \
+	--inside-color=${color0:1}00 \
+	--ringver-color=${color1:1}dd \
+	--ringwrong-color=${color1:1}dd \
+	--ring-color=${color7:1}dd \
+	--line-color=${color0:1}00 \
+	--keyhl-color=${color0:1}dd \
+	--bshl-color=${color0:1}dd \
+	--ind-pos="x+40:y+h-40" \
 	--line-uses-inside \
 	--radius=16 \
-	--veriftext="" \
-	--wrongtext="" \
+	--verif-text="" \
+	--wrong-text="" \
 	--force-clock \
 	--time-font=monospace \
-	--datestr="" \
-	--timesize=24 \
+	--date-str="" \
+	--time-size=24 \
 	--time-align=2 \
-	--timestr="%A, %B %d @ %H:%M" \
-	--timepos="x+w-24:iy+4" \
-	--timecolor=${color7:1}dd \
-	--noinputtext="" 2> /dev/null &
+	--time-str="%A, %B %d @ %H:%M" \
+	--time-pos="x+w-24:iy+4" \
+	--time-color=${color7:1}dd \
+	--noinput-text="" > /dev/null &
 pid=$!
 
 time_waiting=0
@@ -116,7 +114,6 @@ do
 		time_waiting=0
 		systemctl suspend
 		sleep 1
-		$HOME/bin/setinputs.sh
 	fi
 	sleep 0.05
 done
