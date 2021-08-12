@@ -11,3 +11,7 @@
 	insteadOf = https://github.com/
 [url "ssh://git@bitbucket.org/"]
 	insteadOf = https://bitbucket.org/
+
+[includeIf "gitdir:~/generac/"]
+	path = ~/generac/.gitconfig
+
