@@ -67,10 +67,10 @@ for account in "${!accounts_to_sync[@]}"
 do
 	case $account in
 		school)
-			(unbuffer grive -i $GRIVE_ID -e $GRIVE_SECRET -p "/home/ryan/Georgia Tech" | while read -t 1500 line; do echo $line; done) &
+			(unbuffer grive -i $GRIVE_ID -e $GRIVE_SECRET -p "/home/ryan/Georgia Tech" | while read -t 1500 line; do echo $line; done; find "/home/ryan/Georgia Tech/.trash" -type f -mtime +30 -delete) &
 			;;
 		personal)
-			(unbuffer grive -i $GRIVE_ID -e $GRIVE_SECRET -p "/home/ryan/Google Drive" | while read -t 1500 line; do echo $line; done) &
+			(unbuffer grive -i $GRIVE_ID -e $GRIVE_SECRET -p "/home/ryan/Google Drive" | while read -t 1500 line; do echo $line; done; find "/home/ryan/Google Drive/.trash" -type f -mtime +30 -delete) &
 			;;
 	esac
 
