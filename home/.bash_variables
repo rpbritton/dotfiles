@@ -5,7 +5,10 @@ export MAKEFLAGS="-j$(nproc)"
 export PKGEXT=".pkg.tar" makepkg
 
 # accessibility
-[[ -f $HOME/bin/accessibleenvironment ]] && source $HOME/bin/accessibleenvironment --set
+if [[ -f $HOME/git/goodnight_mouse/bin/accessibleenvironment.sh ]] 
+then
+	source $HOME/git/goodnight_mouse/bin/accessibleenvironment.sh --set
+fi
 
 # firefox smooth scrolling + touch screen
 export MOZ_USE_XINPUT2=1
