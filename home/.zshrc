@@ -18,10 +18,13 @@ antigen bundle zsh-users/zsh-syntax-highlighting
 # apply
 antigen apply
 
-# better autosuggest
+# autosuggest options
 export ZSH_AUTOSUGGEST_STRATEGY=(completion history)
 autoload compinit && compinit
 export ZSH_AUTOSUGGEST_USE_ASYNC=true
+
+# history options
+export HIST_FIND_NO_DUPS=true
 
 # prompt
 export PROMPT="%B%F{green}%~%f%b %B%F{blue}%(!.#.$)%f%b "
