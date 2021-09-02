@@ -1,11 +1,8 @@
 configuration {
 	modi: "drun,window,ssh";
-	width: 100;
-	lines: 10;
 	font: "Cascadia Code 8";
 	location: 6;
 	yoffset: -20;
 	sidebar-mode: true;
-	separator-style: "solid";
-	theme: "~/.cache/wal/colors-rofi-dark.rasi";
+	theme: "~/.cache/wal/rofi.rasi";
 }
