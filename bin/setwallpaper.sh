@@ -55,6 +55,8 @@ then
 	exit 1
 fi
 
+convert "$wallpaper" "$HOME/Pictures/wallpaper.png"
+
 wal -c
 wal -a 95 -i "$wallpaper" -n
 
