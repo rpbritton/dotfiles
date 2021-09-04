@@ -58,7 +58,7 @@ fi
 convert "$wallpaper" "$HOME/Pictures/wallpaper.png"
 
 wal -c
-wal -a 95 -i "$wallpaper" -n
+wal -i "$wallpaper" -n
 
 background_color=gray58
 shadow_color=black
