@@ -5,6 +5,7 @@ alias ca="qalc"
 alias k='kubectl'
 alias ll='ls -l'
 alias ff='firefox'
+alias o="openfromterm.sh"
 
 # system control
 alias reboot='systemctl reboot'
