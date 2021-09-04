@@ -15,3 +15,5 @@
 [includeIf "gitdir:~/generac/"]
 	path = ~/generac/.gitconfig
 
+[core]
+	excludesFile = ~/.gitignore
