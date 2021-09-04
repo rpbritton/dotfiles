@@ -123,7 +123,7 @@ function set_all_monitors {
 		return 1
 	fi
 	monitor_layouts[$primary]=$(echo $layout | jq -c '.primary')
-	
+
 	# get default monitor layout
 	default_monitor_layout=$(echo $layout | jq -c '.default')
 	if [[ $default_monitor_layout == "null" ]]
