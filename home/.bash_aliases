@@ -6,6 +6,8 @@ alias k='kubectl'
 alias ll='ls -l'
 alias ff='firefox'
 alias o="openfromterm.sh"
+alias c="xclip -selection clipboard"
+alias v="xclip -o"
 
 # system control
 alias reboot='systemctl reboot'
