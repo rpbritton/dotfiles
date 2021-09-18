@@ -4,14 +4,12 @@
 xrdb -merge $HOME/.Xresources
 xset -b
 xsetroot -cursor_name left_ptr
-# enable key repeat
-seq -s " r " 8 255 | xargs xset r
 
 # needed for at-spi registry mouse events
-dbus-update-activation-environment --systemd DBUS_SESSION_BUS_ADDRESS DISPLAY XAUTHORITY
+#dbus-update-activation-environment --systemd DBUS_SESSION_BUS_ADDRESS DISPLAY XAUTHORITY
 
-# start programs
-sxhkd -m -1 &
+# start os programs
+sxhkd &
 redshift &
 picom &
 dunst &
@@ -22,7 +20,7 @@ $HOME/bin/setmonitors.sh -o
 
 #pkill wallpaperloop
 #$HOME/bin/wallpaperloop.sh -s 1200 -r earthporn &
-$HOME/bin/setwallpaper.sh -p $HOME/Pictures/wallpaper.png
+$HOME/bin/setwallpaper.sh
 
 # start custom loopers
 $HOME/bin/windowproperties.sh & # todo
