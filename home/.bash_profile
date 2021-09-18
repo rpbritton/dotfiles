@@ -8,5 +8,5 @@
 # auto start x
 if [[ -z $DISPLAY ]] && [[ $(tty) = /dev/tty1 ]]
 then
-	startx
+	exec startx
 fi
