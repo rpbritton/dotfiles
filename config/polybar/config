@@ -80,7 +80,7 @@ label = " %output% "
 type = internal/memory
 interval = 2
 
-label = " ram: %percentage_used%% "
+label = " ram: %percentage_used:3%% "
 
 [module/bspwm]
 type = internal/bspwm
@@ -117,7 +117,7 @@ type = custom/script
 exec = $HOME/bin/backlight.sh --tail
 tail = true
 
-label = " lit: %output% "
+label = " lit: %output:4% "
 
 scroll-up = $HOME/bin/backlight.sh +
 scroll-down = $HOME/bin/backlight.sh -
@@ -126,7 +126,7 @@ scroll-down = $HOME/bin/backlight.sh -
 type = internal/cpu
 interval = 2
 
-label = " cpu: %percentage:2%% "
+label = " cpu: %percentage:3%% "
 
 [module/frequency]
 type = custom/script
@@ -140,7 +140,7 @@ type = custom/script
 interval = 2
 exec = timeout 1 sensors | grep "Package id 0:" | awk '{printf "%d", $4}'
 
-label = " temp: %output%C "
+label = " temp: %output:3%C "
 
 [module/battery]
 type = internal/battery
@@ -150,9 +150,9 @@ full-at = 99
 battery = BAT0
 adapter = AC
 
-label-discharging = " batt: %percentage%% "
-label-charging = " batt: +%percentage%% "
-label-full = " batt: +%percentage%% "
+label-discharging = " batt: %percentage:3%% "
+label-charging = " batt: +%percentage:3%% "
+label-full = " batt: +%percentage:3%% "
 
 [module/volume]
 /*type = internal/pulseaudio*/
@@ -164,7 +164,7 @@ type = custom/script
 exec = $HOME/bin/volume.sh --tail
 tail = true
 
-label = " vol: %output% "
+label = " vol: %output:4% "
 
 click-left = $HOME/bin/volume.sh -t &
 click-right = $HOME/bin/audiopicker.py &
