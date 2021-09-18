@@ -5,13 +5,16 @@ export MAKEFLAGS="-j$(nproc)"
 export PKGEXT=".pkg.tar" makepkg
 
 # accessibility
-if [[ -f $HOME/git/goodnight_mouse/bin/accessibleenvironment.sh ]] 
+if [[ -f $HOME/git/goodnight_mouse/bin/accessibleenvironment.sh ]]
 then
 	source $HOME/git/goodnight_mouse/bin/accessibleenvironment.sh --set
 fi
 
 # firefox smooth scrolling + touch screen
 export MOZ_USE_XINPUT2=1
+
+# bspwm java white screen fix
+export _JAVA_AWT_WM_NONREPARENTING=1
 
 # theme
 export QT_STYLE_OVERRIDE="gtk2"
