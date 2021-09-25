@@ -27,8 +27,8 @@ BACKUP_DISK_LABEL="1tb-nvme-wd"
 BACKUP_DISK_KEY="/root/backup_1tb-nvme-wd_key"
 
 exit_the_program () {
-	[[ $# != 1 ]] && echo "no exit message" || echo $1
-	exit 1
+    [[ $# != 1 ]] && echo "no exit message" || echo $1
+    exit 1
 }
 
 [[ "$EUID" != 0 ]] && exit_the_program "please run as root"
@@ -40,14 +40,14 @@ is_mounted () {
 
 unmount_backup_disk () {
     is_mounted || return
-	echo "--- starting unmount process ---"
+    echo "--- starting unmount process ---"
     udisksctl unmount -b "/dev/disk/by-label/$BACKUP_DISK_LABEL" || exit_the_program "failed to unmount"
     udisksctl lock -b "/dev/disk/by-uuid/$BACKUP_DISK_UUID" || exit_the_program "failed to lock"
 }
 
 mount_backup_disk () {
     is_mounted && return
-	echo "--- starting mount process ---"
+    echo "--- starting mount process ---"
     udisksctl unlock -b "/dev/disk/by-uuid/$BACKUP_DISK_UUID" --key-file $BACKUP_DISK_KEY || exit_the_program "failed to unlock"
     udisksctl mount -b "/dev/disk/by-label/$BACKUP_DISK_LABEL" || exit_the_program "failed to mount"
 }
@@ -63,26 +63,25 @@ is_mounted && END_STATE=mounted || END_STATE=unmounted
 
 while [[ $# -gt 0 ]]
 do
-	case $1 in
-		-m|--mount)
-			shift 1
-			END_STATE=mounted
-			;;
-		-u|--unmount)
-			shift 1
-			END_STATE=unmounted
-			;;
-		-b|--backup)
-			shift 1
-			[[ ! $1 =~ ^(daily|weekly|monthly)$ ]] && exit_the_program "unknown type '$1', use: daily, weekly, monthly"
-			BACKUP_TYPE=$1
-			shift 1
-			;;
-		-*) exit_the_program "unknown option '$1'" ;;
-		*) exit_the_program "unexpected argument '$1'" ;;
-	esac
+    case $1 in
+        -m|--mount)
+            shift 1
+            END_STATE=mounted
+        ;;
+        -u|--unmount)
+            shift 1
+            END_STATE=unmounted
+        ;;
+        -b|--backup)
+            shift 1
+            [[ ! $1 =~ ^(daily|weekly|monthly)$ ]] && exit_the_program "unknown type '$1', use: daily, weekly, monthly"
+            BACKUP_TYPE=$1
+            shift 1
+        ;;
+        -*) exit_the_program "unknown option '$1'" ;;
+        *) exit_the_program "unexpected argument '$1'" ;;
+    esac
 done
 
 [[ ! -z "$BACKUP_TYPE" ]] && run_backup $BACKUP_TYPE
 [[ $END_STATE == mounted ]] && mount_backup_disk || unmount_backup_disk
-
