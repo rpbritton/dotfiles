@@ -1,7 +1,7 @@
 #!/bin/sh
 
 player=$(unbuffer playerctl -l 2>&1 | head -n 1)
-if [[ -z $player || $player == "No players were found" ]]
+if [[ -z $player || $player == "No players found" ]]
 then
 	echo
 else
