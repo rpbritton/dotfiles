@@ -19,8 +19,8 @@ alias del='trash-put'
 #alias rm='echo Use \"del\", or the full path i.e: /bin/rm'
 
 # youtube downloader
-alias yta='youtube-dl --ignore-errors --output "%(artist)s - %(track)s.%(ext)s" --extract-audio --audio-format mp3 --embed-thumbnail --add-metadata'
-alias yt='youtube-dl --ignore-errors --output "%(uploader)s - %(title)s.%(ext)s"'
+alias yta='youtube-dl --force-ipv4 --ignore-errors --output "%(artist)s - %(track)s.%(ext)s" --extract-audio --audio-format mp3 --embed-thumbnail --add-metadata'
+alias yt='youtube-dl --force-ipv4 --ignore-errors --output "%(uploader)s - %(title)s.%(ext)s"'
 alias ytm="$HOME/bin/youtubemusicdownloader.py"
 
 # fun
