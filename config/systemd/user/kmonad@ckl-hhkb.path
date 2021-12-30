@@ -1,0 +1,10 @@
+[Unit]
+Description=kmonad ckl-hhkb
+StartLimitIntervalSec=400
+StartLimitBurst=3
+
+[Path]
+PathExists=/dev/input/by-id/usb-Topre_Corporation_HHKB_Professional-event-kbd
+
+[Install]
+WantedBy=default.target

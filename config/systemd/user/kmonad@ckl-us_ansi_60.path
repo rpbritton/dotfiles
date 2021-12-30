@@ -1,0 +1,10 @@
+[Unit]
+Description=kmonad ckl-hhkb
+StartLimitIntervalSec=400
+StartLimitBurst=3
+
+[Path]
+PathExists=/dev/input/by-path/platform-i8042-serio-0-event-kbd
+
+[Install]
+WantedBy=default.target
