@@ -4,5 +4,6 @@ configuration {
 	location: 6;
 	yoffset: -20;
 	sidebar-mode: true;
-	theme: "~/.cache/wal/rofi.rasi";
 }
+@theme "~/.cache/wal/rofi.rasi"
+
