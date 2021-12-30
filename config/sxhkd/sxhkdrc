@@ -2,7 +2,7 @@
 super + @m
 	$HOME/bin/screenshot.sh
 super + shift + @m
-	$HOME/bin/screenshot.sh -sf
+	$HOME/bin/screenshot.sh -s -f
 
 # audio controls
 XF86AudioMute
