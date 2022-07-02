@@ -17,13 +17,13 @@
   1    2    3    4    5    6         8    9    0    -    =    bspc
   tab  q    w    e    r    t         i    o    p    [    ]    \
        a    s    d    f    g         k    l    ;    '    ret
-                 c    v    b         m    ,    .
+                 v    b    spc       n    m    ,
 
   `    7
   y    u
   caps h    j
-  lsft z    x    n    /    rsft
-  lctl lmet lalt spc  ralt rmet cmp  rctl
+  lsft z    x    c    .    /    rsft
+  lctl lmet lalt ralt rmet cmp  rctl
 )
 
 ;; CKL Layout
@@ -31,14 +31,16 @@
 (defalias
   sym (tap-hold-next 200 del (layer-toggle symbols))
   nav (tap-hold-next 200 tab (layer-toggle navigation))
-  fun (layer-toggle function)
+  sf  (tap-hold-next 200 del (layer-toggle function))
+  nf  (tap-hold-next 200 tab (layer-toggle function))
 )
 
 (deflayer base
-  met  q    w    f    p    b         j    l    u    y    '    esc
-  ctl  a    r    s    t    g         m    n    e    i    o    alt
+  lmet q    w    f    p    b         j    l    u    y    '    esc
+  lctl a    r    s    t    g         m    n    e    i    o    lalt
        z    x    c    d    v         k    h    ,    .    ;
-                 bspc @sym lsft      spc  @nav ret
+                 @sym bspc lsft      ret  spc  @nav
+                                
 
   XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
 )
@@ -47,7 +49,7 @@
   _    0    1    2    3    ^         $    {    }    \_   "    _
   _    &    4    5    6    *         +    \(   \)   -    =    _
        |    7    8    9    ~         \\   /    ?    !    :
-                 _    _    _         _    @fun _
+                 _    _    _         _    _    @nf
 
   XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
 )
@@ -56,7 +58,7 @@
   _    XX   F1   F2   F3   F10       XX   home up   end  del  _
   _    XX   F4   F5   F6   F11       pgup left down rght pgdn _
        XX   F7   F8   F9   F12       XX   XX   XX   XX   XX
-                 _    @fun _         _    _    _
+                 @sf   _    _         _    _    _
 
   XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
 )
