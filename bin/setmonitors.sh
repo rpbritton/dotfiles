@@ -156,6 +156,8 @@ function set_all_monitors {
         }
         
         function connect_monitor() {
+            xrandr_args+=( --output $monitor )
+            
             # get position scheme
             position=$(echo ${monitor_layouts[$monitor]} | jq -r .position)
             if [[ -z $position ]] || [[ $position == "null" ]]
@@ -170,7 +172,6 @@ function set_all_monitors {
             fi
             # get monitor width and height
             width=$(echo ${monitor_layouts[$monitor]} | jq -r .width)
-            echo width: $width
             if [[ -z $width ]] || [[ $width == "null" ]]
             then
                 width=${monitor_widths[$monitor]}
@@ -201,7 +202,15 @@ function set_all_monitors {
             (( $position_x+$width > $screen_east )) && screen_east=$(( $position_x+$width ))
             (( $position_y+$height > $screen_south )) && screen_south=$(( $position_y+$height ))
             # add xrandr arguments
-            xrandr_args+=( --output $monitor --mode "${width}x${height}" --pos "${position_x}x${position_y}" )
+            xrandr_args+=( --mode "${width}x${height}" --pos "${position_x}x${position_y}" )
+            
+            # set refresh rate
+            rate=$(echo ${monitor_layouts[$monitor]} | jq -r .rate)
+            if ! [[ -z $rate || $rate == "null" ]]
+            then
+                xrandr_args+=( --rate "${rate}" )
+            fi
+            
             monitors[$monitor]="connected"
         }
         
@@ -270,8 +279,10 @@ function set_all_monitors {
     do
         if [[ ${monitors[$monitor]} == "connected" ]]
         then
+            # set bspwm desktops
             bspc monitor $monitor -d 1 2 3 4 5 6 7 8 9 10
             
+            # set polybar
             polybar_bar=$(echo ${monitor_layouts[$monitor]} | jq -r .polybar)
             if [[ -z $polybar_bar || $polybar_bar == "null" ]]
             then
@@ -280,6 +291,13 @@ function set_all_monitors {
             if ! [[ -z $polybar_bar && $polybar_bar == "null" && $polybar_bar == "none" ]]
             then
                 (sleep 4; MONITOR=$monitor polybar $polybar_bar) &
+            fi
+            
+            # set touchscreen
+            touchscreen=$(echo ${monitor_layouts[$monitor]} | jq -r .touchscreen)
+            if ! [[ -z $touchscreen || $touchscreen == "null" ]]
+            then
+                xinput --map-to-output "${touchscreen}" "${monitor}"
             fi
         fi
     done
