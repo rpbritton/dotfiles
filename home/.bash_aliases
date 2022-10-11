@@ -8,7 +8,7 @@ alias ff='firefox'
 alias o="openfromterm.sh"
 alias c="xclip -selection clipboard"
 alias v="xclip -o"
-alias toletter="convert -page Letter -density 300 -quality 100"
+alias toletter="pdfjam --paper letter --outfile"
 
 # system control
 alias reboot='systemctl reboot'
