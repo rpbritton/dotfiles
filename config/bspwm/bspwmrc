@@ -1,13 +1,5 @@
 #!/bin/bash
 
-# set xorg settings
-xrdb -merge $HOME/.Xresources
-xset -b
-xsetroot -cursor_name left_ptr
-
-# needed for at-spi registry mouse events
-#dbus-update-activation-environment --systemd DBUS_SESSION_BUS_ADDRESS DISPLAY XAUTHORITY
-
 # start os programs
 sxhkd &
 redshift &
