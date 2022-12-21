@@ -67,7 +67,7 @@ if [[ ! -f /tmp/lock.png ]]; then
     $HOME/bin/lockcreate.sh
 fi
 
-dunstctl set-pause true
+dunstctl set-paused true
 if [[ $(playerctl status) = "Playing" ]]
 then
     playerctl pause
@@ -118,6 +118,6 @@ do
     sleep 0.05
 done
 
-dunstctl set-pause false
+dunstctl set-paused false
 
 rm /tmp/lock.png
