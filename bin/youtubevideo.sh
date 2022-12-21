@@ -8,6 +8,7 @@ FORCE_RENDER=0
 VIDEO_TITLE=""
 VIDEO_PLAYLIST=""
 SUSPEND_AFTER=0
+YOUTUBE_UPLOAD="$HOME/git/youtube-upload/bin/youtube-upload"
 
 # Retrieve arguments
 while [[ $# -gt 0 ]]
@@ -70,7 +71,7 @@ fi
 
 # Upload to youtube
 echo "Starting upload to youtube"
-youtube-upload \
+$YOUTUBE_UPLOAD \
 --title="$VIDEO_TITLE" \
 --playlist="$VIDEO_PLAYLIST" \
 --privacy=unlisted \
