@@ -3,10 +3,8 @@
 . $HOME/bin/secrets/vpn.sh
 PORT=9091
 
-echo "URL: 'http://localhost:$PORT'"
-
 case "$1" in
-    run)
+    start)
         docker run --cap-add=NET_ADMIN -d \
         --name transmission \
         -v $HOME/Videos:/data \
@@ -19,22 +17,17 @@ case "$1" in
         --log-opt max-size=10m \
         -p $PORT:$PORT \
         haugene/transmission-openvpn
-    ;;
-    
-    start)
-        docker start transmission
+        
+        echo "Starting on URL: 'http://localhost:$PORT'"
     ;;
     
     stop)
         docker stop transmission
-    ;;
-    
-    rm)
         docker rm transmission
     ;;
     
     *)
-        echo "Unknown argument '$1'"
+        echo "Unknown argument '$1', use 'start' or 'stop'"
         exit 1
     ;;
 esac
