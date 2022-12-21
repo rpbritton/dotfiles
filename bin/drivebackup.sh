@@ -5,11 +5,11 @@
 ------------------------------------
 [Unit]
 Description=Run a backup every hour
- 
+
 [Timer]
 OnCalendar=*-*-* *:00:00
 Persistent=true
- 
+
 [Install]
 WantedBy=timers.target
 ------------------------------------
@@ -25,13 +25,6 @@ ExecStart=/home/ryan/bin/drivebackup.sh
 --------------------------------------
 
 sudo systemctl enable autobackup.timer
-'
-
-wget --spider --quiet "http://google.com"
-if [ "$?" != 0 ]; then
-	echo "No internet!"
-	exit 1
-fi
 
 . $HOME/bin/secrets/drivesecrets
 
