@@ -1,6 +1,6 @@
-#!/bin/sh
+#!/bin/bash
 
-# ~/.config/systemd/user/autobackup.timer
+# ~/.config/systemd/user/drivebackup.timer
 # ------------------------------------
 # [Unit]
 # Description=Run a backup every hour
@@ -13,7 +13,7 @@
 # WantedBy=timers.target
 # ------------------------------------
 #
-# ~/.config/systemd/user/autobackup.service
+# ~/.config/systemd/user/drivebackup.service
 # --------------------------------------
 # [Unit]
 # Description=Backup to google drive
@@ -22,8 +22,8 @@
 # Type=oneshot
 # ExecStart=/home/ryan/bin/drivebackup.sh
 # --------------------------------------
-
-sudo systemctl enable autobackup.timer
+#
+# systemctl --user enable --now drivebackup.timer
 
 . $HOME/bin/secrets/drivesecrets
 
