@@ -34,6 +34,7 @@ alias vim3="$HOME/.nimble/bin/vim3"
 alias grep='grep --color=auto'
 alias diff='diff --color=auto'
 alias ls='ls --color=auto'
+alias watch='watch --color'
 
 # matlab
 alias matlab="$HOME/MATLAB/R2020a/bin/matlab -nodesktop -nosplash"

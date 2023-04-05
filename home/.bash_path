@@ -9,4 +9,11 @@ export GOPATH=$HOME/go
 export PATH="$GOPATH/bin:$PATH"
 
 # matlab
-export PATH=$PATH:~/MATLAB/R2020a/bin/matlab
+export PATH="$PATH:$HOME/MATLAB/R2020a/bin/matlab"
+
+# FastX
+export PATH="$PATH:$HOME/FastX3"
+
+# Conda
+export PATH="$PATH:/opt/miniconda3/bin"
+

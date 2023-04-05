@@ -20,8 +20,8 @@
 [url "ssh://git@gitlab.com/"]
 	insteadOf = https://gitlab.com/
 
-[includeIf "gitdir:~/generac/"]
-	path = ~/generac/.gitconfig
+[url "ssh://git@github.gatech.edu/"]
+	insteadOf = https://github.gatech.edu/
 
 [core]
 	excludesFile = ~/.gitignore

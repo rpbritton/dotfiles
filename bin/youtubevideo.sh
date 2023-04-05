@@ -56,7 +56,7 @@ then
 fi
 
 # Retrieve video file
-VIDEO_FILE=$(xq -x "/mlt/consumer/@target" $MELT_SCRIPT)
+VIDEO_FILE=$(xq -r '.mlt.consumer."@target"' $MELT_SCRIPT)
 echo "Using video file '$VIDEO_FILE'"
 
 # Render video file

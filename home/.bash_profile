@@ -8,5 +8,6 @@
 # auto start x
 if type startx &> /dev/null && [[ -z $DISPLAY ]] && [[ $(tty) = /dev/tty1 ]]
 then
-	exec startx
+#	exec startx
+	startx &> $HOME/startxlog.txt
 fi
