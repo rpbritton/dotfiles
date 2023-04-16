@@ -63,7 +63,7 @@ echo "Using video file '$VIDEO_FILE'"
 if [[ ! -f $VIDEO_FILE ]] || [[ $FORCE_RENDER == 1 ]]
 then
     echo "Starting video render."
-    melt $MELT_SCRIPT
+    xvfb-run -a melt -progress $MELT_SCRIPT
     echo "Finished video render."
 else
     echo "Video file found, not rendering..."
