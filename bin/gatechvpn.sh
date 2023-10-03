@@ -14,11 +14,12 @@ start() {
     GATEWAY="DC Gateway"
     
     eval $({ echo $PASSWORD; sleep 1; echo "$SECONDARY"; sleep 1; echo "$GATEWAY"; } | openconnect --protocol=gp --user=$USER --passwd-on-stdin vpn.gatech.edu --authenticate)
-    
+
     nmcli connection up "$VPN_NAME" passwd-file /dev/stdin << EOF
     vpn.secrets.cookie:$COOKIE
     vpn.secrets.gwcert:$FINGERPRINT
     vpn.secrets.gateway:$HOST
+    vpn.secrets.resolve:$RESOLVE
 EOF
 }
 
