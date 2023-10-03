@@ -42,3 +42,23 @@ alias matlab-desktop="$HOME/MATLAB/R2020a/bin/matlab"
 
 # ssh
 alias ssh="kitty +kitten ssh"
+
+# file system closne
+alias rsyncclone="rsync -aPHAXS"
+
+# run melt script
+alias run_melt_script="melt -progress"
+
+# sycamore nas mount
+alias mount_sycamore_nas="rclone mount -v --dir-cache-time 30s sycamore:/nas /nas"
+alias mount_daemon_sycamore_nas="mount_sycamore_nas --daemon"
+alias unmount_daemon_sycamore_nas="fusermount -u /nas"
+
+# package manager
+alias pacman_rebuild_dryrun="checkrebuild"
+alias pacman_rebuild="yay -S --rebuild --answerclean A --answerdiff N \$(checkrebuild | cut -d $'\t' -f 2)"
+alias pacman_clean_uninstalled_dryrun="paccache -dvuk0"
+alias pacman_clean_uninstalled="paccache -rvuk0"
+alias pacman_remove_orphans_dryrun="yay -Qdtq"
+alias pacman_remove_orphans="yay -Rsn \$(yay -Qdtq)"
+
