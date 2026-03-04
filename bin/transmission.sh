@@ -5,9 +5,11 @@ PORT=9091
 
 case "$1" in
     start)
+        export DISABLE_PORT_UPDATER=true
         docker run --cap-add=NET_ADMIN -d \
         --name transmission \
         -v $HOME/Videos:/data \
+        --dns=1.1.1.1 \
         -e OPENVPN_PROVIDER="$OPENVPN_PROVIDER" \
         -e OPENVPN_CONFIG="$OPENVPN_CONFIG" \
         -e OPENVPN_USERNAME="$OPENVPN_USERNAME" \
@@ -16,7 +18,7 @@ case "$1" in
         --log-driver json-file \
         --log-opt max-size=10m \
         -p $PORT:$PORT \
-        haugene/transmission-openvpn
+        haugene/transmission-openvpn:dev
         
         echo "Starting on URL: 'http://localhost:$PORT'"
     ;;

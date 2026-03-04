@@ -2,7 +2,7 @@
 [[ -f $HOME/.bashrc ]] && source $HOME/.bashrc
 
 # load antigen
-source /usr/share/zsh/share/antigen.zsh
+source $HOME/.local/bin/antigen.zsh
 
 # use oh-my-zsh
 antigen use oh-my-zsh

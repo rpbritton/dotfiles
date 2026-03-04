@@ -1,0 +1,189 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Parse arguments
+BRANCH=""
+SQUASH_COMMIT="main"
+
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        --branch)
+            if [[ -z "${2:-}" ]]; then
+                echo "Error: --branch requires an argument" >&2
+                exit 1
+            fi
+            BRANCH="$2"
+            shift 2
+            ;;
+        --squash-ref)
+            if [[ -z "${2:-}" ]]; then
+                echo "Error: --squash-ref requires an argument" >&2
+                exit 1
+            fi
+            SQUASH_COMMIT="$2"
+            shift 2
+            ;;
+        *)
+            echo "Error: Unknown option: $1" >&2
+            echo "Usage: $0 [--branch <branch>] [--squash-ref <commit-ref>]" >&2
+            exit 1
+            ;;
+    esac
+done
+
+# Verify we're in a git repository
+if ! git rev-parse --git-dir &>/dev/null; then
+    echo "Error: Not in a git repository" >&2
+    exit 1
+fi
+
+# Check for ongoing rebase
+if [[ -d "$(git rev-parse --git-dir)/rebase-merge" ]] || [[ -d "$(git rev-parse --git-dir)/rebase-apply" ]]; then
+    echo "Error: A rebase is already in progress" >&2
+    echo "Run 'git rebase --abort' or 'git rebase --continue' first" >&2
+    exit 1
+fi
+
+# If no branch specified, use current branch
+if [[ -z "$BRANCH" ]]; then
+    BRANCH=$(git rev-parse --abbrev-ref HEAD)
+    echo "Using current branch: $BRANCH"
+fi
+
+# Verify working directory is clean (skip in dry-run mode)
+if ! git diff-index --quiet HEAD 2>/dev/null; then
+    echo "Error: Working directory has uncommitted changes. Commit or stash them first." >&2
+    exit 1
+fi
+
+# Verify branch exists
+if ! git rev-parse --verify "$BRANCH" &>/dev/null; then
+    echo "Error: Branch '$BRANCH' does not exist" >&2
+    exit 1
+fi
+
+# Resolve squash commit reference to actual commit hash
+SQUASH_COMMIT_INPUT="$SQUASH_COMMIT"
+if ! SQUASH_COMMIT=$(git rev-parse --verify "$SQUASH_COMMIT" 2>/dev/null); then
+    echo "Error: Cannot resolve reference '$SQUASH_COMMIT_INPUT' to a commit" >&2
+    exit 1
+fi
+
+# Verify main branch exists
+if ! git rev-parse --verify main &>/dev/null; then
+    echo "Error: 'main' branch does not exist" >&2
+    exit 1
+fi
+
+# Store original branch
+ORIGINAL_BRANCH=$(git rev-parse --abbrev-ref HEAD)
+
+# Switch to target branch if needed
+if [[ "$ORIGINAL_BRANCH" != "$BRANCH" ]]; then
+    git checkout "$BRANCH"
+fi
+
+# Extract squash commit titles
+SQUASH_TITLES=$(git log -1 --pretty=%B "$SQUASH_COMMIT" | awk '/^\*/{gsub(/^\* /,""); print}')
+SQUASH_FIRST_LINE=$(git log -1 --pretty=%s "$SQUASH_COMMIT")
+
+# Build array of patterns to match
+declare -a PATTERNS
+PATTERNS+=("$SQUASH_FIRST_LINE")
+while IFS= read -r line; do
+    [[ -n "$line" ]] && PATTERNS+=("$line")
+done <<< "$SQUASH_TITLES"
+
+echo "Dropping commits on $BRANCH that match these titles:"
+printf '%s\n' "${PATTERNS[@]}"
+echo
+
+# Create a temporary file for the rebase todo list
+REBASE_TODO=$(mktemp)
+trap "rm -f '$REBASE_TODO'" EXIT
+
+# Track duplicate matches
+declare -A PATTERN_MATCHES
+
+# Build the rebase todo list
+if ! git rev-list --reverse --format='%H %s' main..HEAD | grep -v '^commit ' | while IFS=' ' read -r HASH TITLE_REST; do
+    # Get the full subject line (everything after the hash)
+    SUBJECT=$(git log -1 --format='%s' "$HASH")
+    
+    # Convert to lowercase for case-insensitive comparison
+    SUBJECT_LOWER=$(echo "$SUBJECT" | tr '[:upper:]' '[:lower:]')
+    
+    DROP=false
+    MATCHED_PATTERN=""
+    for PATTERN in "${PATTERNS[@]}"; do
+        PATTERN_LOWER=$(echo "$PATTERN" | tr '[:upper:]' '[:lower:]')
+        if [[ "$SUBJECT_LOWER" == "$PATTERN_LOWER" ]]; then
+            DROP=true
+            MATCHED_PATTERN="$PATTERN"
+            break
+        fi
+    done
+    
+    if $DROP; then
+        echo "drop $HASH $SUBJECT"
+        # Track matches for duplicate warning
+        echo "$MATCHED_PATTERN" >> "$REBASE_TODO.matches"
+    else
+        echo "pick $HASH $SUBJECT"
+    fi
+done > "$REBASE_TODO"; then
+    echo "Error: Failed to build rebase todo list" >&2
+    exit 1
+fi
+
+# Check if there are any commits to rebase
+if [[ ! -s "$REBASE_TODO" ]]; then
+    echo "No commits to rebase on $BRANCH (already up to date with main)" >&2
+    exit 0
+fi
+
+# Check for duplicate matches and warn
+if [[ -f "$REBASE_TODO.matches" ]]; then
+    DUPLICATES=$(sort "$REBASE_TODO.matches" | uniq -d)
+    if [[ -n "$DUPLICATES" ]]; then
+        echo "⚠️  WARNING: Multiple commits match the same pattern(s):" >&2
+        while IFS= read -r dup; do
+            COUNT=$(grep -c "^$dup$" "$REBASE_TODO.matches")
+            echo "  - \"$dup\" matches $COUNT commit(s)" >&2
+        done <<< "$DUPLICATES"
+        echo "" >&2
+    fi
+    rm -f "$REBASE_TODO.matches"
+fi
+
+echo ""
+echo "==== REBASE PREVIEW ===="
+echo "Branch: $BRANCH"
+echo "Base: main"
+echo ""
+cat "$REBASE_TODO"
+echo ""
+
+# Count commits to drop and keep
+DROP_COUNT=$(grep -c "^drop " "$REBASE_TODO" || true)
+PICK_COUNT=$(grep -c "^pick " "$REBASE_TODO" || true)
+echo "Summary: Will drop $DROP_COUNT commit(s) and keep $PICK_COUNT commit(s)"
+echo ""
+
+# Ask for confirmation
+read -p "Proceed with rebase? [y/N] " -n 1 -r
+echo
+if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+    echo "Rebase cancelled"
+    exit 0
+fi
+
+# Perform the rebase non-interactively
+if ! GIT_SEQUENCE_EDITOR="cat '$REBASE_TODO' >" git rebase -i main; then
+    echo "Error: Rebase failed. You may need to resolve conflicts manually." >&2
+    echo "Run 'git rebase --abort' to cancel, or resolve conflicts and 'git rebase --continue'" >&2
+    exit 1
+fi
+
+echo "Successfully rebased $BRANCH onto main with squashed commits dropped"
+
